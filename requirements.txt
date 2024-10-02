@@ -1,0 +1,5 @@
+Flask==2.1.2
+Flask-Limiter==2.4.5.1
+loguru==0.6.0
+requests==2.27.1
+Flask-Caching==2.0.1

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snapchat-dl</title>
+  <style>
+    div#live,
+    div#curated,
+    div#spotlight {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    img,
+    video {
+      width: 200px;
+      height: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <input id="username" type="text" placeholder="Enter snapchat username" />
+  <button id="download">Download</button>
+  <div id="root">
+    <section>
+      <div id="username"></div>
+      <div id="bio"></div>
+      <img src="" alt="" id="profilePictureUrl">
+    </section>
+    <section>
+      <h1>Live Snaps</h1>
+      <div id="live"></div>
+    </section>
+    <section>
+      <h1>Curated Highlights</h1>
+      <div id="curated"></div>
+    </section>
+    <section>
+      <h1>Spotlight Highlights</h1>
+      <div id="spotlight"></div>
+    </section>
+  </div>
+  <script>
+    const download = document.querySelector('#download');
+    const username = document.querySelector('#username');
+    const root = document.querySelector('#root');
+    const MEDIA_ELEMENT = ['img', 'video'];
+
+    const createMediaElement = (url, type, id) => {
+      const element = document.createElement(MEDIA_ELEMENT[type]);
+      if (type === 1) {
+        element.setAttribute('controls', 'true');
+        element.setAttribute('muted', 'true');
+      }
+      element.src = url;
+      root.querySelector(id).append(element);
+    }
+
+    const handleSnap = ({
+      snapMediaType,
+      snapUrls: {
+        mediaUrl
+      }
+    }, id) => {
+      createMediaElement(mediaUrl, snapMediaType, id)
+    };
+
+    download.addEventListener('click', () => {
+      const value = username.value;
+      fetch(`/get?username=${value}`)
+        .then((e) => e.json())
+        .then(e => {
+          const {
+            username,
+            bio,
+            profilePictureUrl
+          } = e.user;
+          document.querySelector('#username').textContent = username;
+          document.querySelector('#bio').textContent = bio;
+          document.querySelector('#profilePictureUrl').src = profilePictureUrl;
+
+          e.stories.forEach((snap) => handleSnap(snap, '#live'));
+
+          e.curatedHighlights.forEach(({
+            snapList
+          }) => {
+            snapList.forEach((snap) => handleSnap(snap, '#curated'))
+          })
+
+          e.spotlightHighlights.forEach(({
+            snapList
+          }) => {
+            snapList.forEach((snap) => handleSnap(snap, '#spotlight'))
+          })
+        })
+        .catch(e => console.error);
+    });
+  </script>
+</body>
+
+</html>
